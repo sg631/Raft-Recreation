@@ -11,6 +11,8 @@ document.body.appendChild( renderer.domElement );
 renderer.domElement.style.position = "absolute";
 renderer.domElement.style.left = "0px";
 renderer.domElement.style.top = "0px";
+
+renderer.setClearColor(0x87ceeb); // Set background color to light blue
 //----------Code Here--------
 var xvelocity = 0;
 var yvelocity = 0;
@@ -87,6 +89,9 @@ document.addEventListener('keydown', (event) => {
   if (event.key == "d"){
     xvelocity += Math.sin(player.rotation.y + Math.PI / 2) * speed;
     zvelocity += Math.cos(player.rotation.y + Math.PI / 2) * speed;
+  }
+  if (event.key == " " && yvelocity == 0) { // Only allow jumping when yvelocity is 0 (player is on the ground)
+    yvelocity += speed * 5;
   }
 
   // Limit player speed
