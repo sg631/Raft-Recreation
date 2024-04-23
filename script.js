@@ -15,6 +15,40 @@ renderer.domElement.style.top = "0px";
 var xvelocity = 0;
 var yvelocity = 0;
 var zvelocity = 0;
+function handleObstacleCollisions(player, obstacles, minDistance, speed, gravityFactor) {
+  const playerVelocity = new THREE.Vector3(xvelocity, yvelocity, zvelocity);
+  const playerVelocityMagnitude = playerVelocity.length();
+
+  let isColliding = false;
+
+  for (const obstacle of obstacles) {
+    const distanceToObstacle = player.position.distanceTo(obstacle.position);
+
+    if (distanceToObstacle <= 1) {
+      const direction = new THREE.Vector3();
+      obstacle.getWorldPosition(direction);
+      direction.sub(player.position).normalize();
+
+      let bounceBackDistance = calculateBounceBackDistance(playerVelocityMagnitude, speed);
+      if (distanceToObstacle < minDistance) {
+        bounceBackDistance = -minDistance; // Ensure player stays at minimum distance
+      }
+
+      // Move the player away from the obstacle with variable bounce-back distance
+      player.position.add(direction.multiplyScalar(bounceBackDistance));
+
+      isColliding = true;
+    }
+  }
+
+  if (isColliding) {
+    yvelocity = 0; // Reset y velocity on collision
+  } else {
+    yvelocity -= gravityFactor; // Apply gravity if not colliding
+  }
+}
+
+const gravityFactor = 0.01; // Adjust gravity strength as needed
 //pointerlock
 document.addEventListener( 'click', (event) => {
   event.preventDefault();
@@ -65,7 +99,13 @@ const player = new THREE.Mesh(
 scene.add(player)
 const referenceViewingObject = new THREE.Mesh( new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x00ff00}))
 scene.add(referenceViewingObject)
-referenceViewingObject.position.z = -3;
+referenceViewingObject.position.z = -3
+const referenceViewingObject2 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial( { color: 0x00ff00}))
+scene.add(referenceViewingObject2)
+referenceViewingObject2.position.y = -3
+const obstacles = [];
+obstacles.push(referenceViewingObject);
+obstacles.push(referenceViewingObject2)
 //Render Loop
 //Render Loop
 //Render Loop
@@ -83,27 +123,11 @@ const minDistance = 0.1; // Set your desired minimum distance to prevent clippin
 function animate() {
   requestAnimationFrame(animate);
 
+  // Handle collisions with obstacles and gravity effect
+  handleObstacleCollisions(player, obstacles, minDistance, speed, gravityFactor);
+
   // Update player position based on velocity
-  const playerVelocity = new THREE.Vector3(xvelocity, yvelocity, zvelocity);
-  player.position.add(playerVelocity);
-
-  const playerVelocityMagnitude = playerVelocity.length();
-
-  // Check for intersection between player and obstacle
-  const distanceToObstacle = player.position.distanceTo(referenceViewingObject.position);
-  if (distanceToObstacle <= 1) {
-    const direction = new THREE.Vector3();
-    referenceViewingObject.getWorldPosition(direction);
-    direction.sub(player.position).normalize();
-
-    let bounceBackDistance = calculateBounceBackDistance(playerVelocityMagnitude, speed);
-    if (distanceToObstacle < minDistance) {
-      bounceBackDistance = -minDistance; // Ensure player stays at minimum distance
-    }
-
-    // Move the player away from the object with variable bounce-back distance
-    player.position.add(direction.multiplyScalar(bounceBackDistance));
-  }
+  player.position.add(new THREE.Vector3(xvelocity, yvelocity, zvelocity));
 
   // Update player and camera velocity damping
   xvelocity *= 0.9;
@@ -118,7 +142,7 @@ function animate() {
   camera.position.copy(player.position);
   camera.rotation.copy(player.rotation);
 
-  // Render it
+  // Render the scene
   renderer.render(scene, camera);
 }
 animate();
