@@ -67,7 +67,7 @@ function updateFogColor() {
         scene.fog.color.set(underwaterFogColor); // Set intense blue color for underwater fog
     } else {
         renderer.setClearColor(0x87ceeb);
-        gravityFactor = 0.01;
+        gravityFactor = 0.02;
         scene.fog = new THREE.Fog(fogColor, 1, 50)
         scene.fog.color.set(fogColor); // Set default fog color when not underwater
     }
@@ -123,41 +123,56 @@ document.addEventListener('mousemove', (event) => {
 const speed = 0.1
 //adjust player movement to change respective velocity values base on the direction of the player
 const maxSpeed = 0.1; // Set your desired maximum speed value here
-
-//adjust player movement to change respective velocity values based on the direction of the player
+var keys = {
+  w:false,
+  a:false,
+  s:false,
+  d:false,
+  " ":false,
+  q:false,
+  e:false,
+  shift:false,
+  tabKey:false
+}
 document.addEventListener('keydown', (event) => {
-  if (event.key == "w"){
+  keys[event.key] = true;
+})
+document.addEventListener('keyup', (event) => {
+  keys[event.key] = false;
+})
+//adjust player movement to change respective velocity values based on the direction of the player
+function updatePlayerMovement(){
+  if (keys["w"]){
     if ((Math.abs(xvelocity) < maxSpeed)  && (Math.abs(zvelocity) < maxSpeed)){
       xvelocity -= Math.sin(player.rotation.y) * speed;
       zvelocity -= Math.cos(player.rotation.y) * speed;
     }
   }
-  if (event.key == "s"){
+  if (keys["s"]){
     if ((Math.abs(xvelocity) < maxSpeed) && (Math.abs(zvelocity) < maxSpeed)){
       xvelocity += Math.sin(player.rotation.y) * speed;
       zvelocity += Math.cos(player.rotation.y) * speed;
     }
   }
-  if (event.key == "a"){
+  if (keys["a"]){
     xvelocity -= Math.sin(player.rotation.y + Math.PI / 2) * speed;
     zvelocity -= Math.cos(player.rotation.y + Math.PI / 2) * speed;
   }
-  if (event.key == "d"){
+  if (keys["d"]){
     xvelocity += Math.sin(player.rotation.y + Math.PI / 2) * speed;
     zvelocity += Math.cos(player.rotation.y + Math.PI / 2) * speed;
   }
-  if (event.key == " ") {
+  if (keys[" "]) {
     if (yvelocity == 0){
       yvelocity += speed * 5;
     } else if (player.position.y < -3){
       yvelocity += speed * 0.5;
     }
   }
-
-  // Limit player speed
-  xvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, xvelocity));
-  zvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, zvelocity));
-});
+    // Limit player speed
+    xvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, xvelocity));
+    zvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, zvelocity));
+}
 
 const player = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
@@ -182,26 +197,7 @@ function calculateBounceBackDistance(velocityMagnitude, speed) {
 }
 
 const minDistance = 0.1; // Set your desired minimum distance to prevent clipping
-function updatePlayerRaftVelocity() {
-    const playerToRaft = raftPart.position.clone().sub(player.position);
-    const relativeVelocity = playerToRaft.normalize().multiplyScalar(raftSpeed);
 
-    // Only add relative velocity if the player is within a certain range of the raft
-    if (playerToRaft.length() < 1) {
-        xvelocity += relativeVelocity.x;
-        yvelocity += relativeVelocity.y;
-        zvelocity += relativeVelocity.z;
-    }
-}
-function updateRaftPosition() {
-    const currentRaftVelocity = raftDirection.clone().multiplyScalar(raftSpeed);
-    raftPart.position.add(currentRaftVelocity);
-
-    // Check if the player is within a certain range and move them with the raft
-    if (player.position.distanceTo(raftPart.position) < 1) {
-        player.position.add(currentRaftVelocity);
-    }
-}
 
 function animate() {
   requestAnimationFrame(animate);
@@ -213,12 +209,9 @@ function animate() {
   player.position.add(new THREE.Vector3(xvelocity, yvelocity, zvelocity));
 
   // Update player and camera velocity damping
-  xvelocity *= 0.95; // Adjust damping factor for player movement
-  yvelocity *= 0.95;
-  zvelocity *= 0.95;
-
-  // Update raft position
-  updateRaftPosition();
+  xvelocity *= 0.7; // Adjust damping factor for player movement
+  yvelocity *= 0.7;
+  zvelocity *= 0.7;
 
   // Update camera position and rotation
   camera.position.copy(player.position);
@@ -227,6 +220,7 @@ function animate() {
   // Render the scene
   renderer.render(scene, camera);
   updateFogColor();
+  updatePlayerMovement();
 }
 
 animate();
