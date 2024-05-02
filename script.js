@@ -14,14 +14,14 @@ renderer.domElement.style.left = "0px";
 renderer.domElement.style.top = "0px";
 
 const fogColor = 0x87ceeb; // Set fog color to match the background color
-scene.fog = new THREE.Fog(fogColor, 1, 50); // Linear fog
+scene.fog = new THREE.Fog(fogColor, 1, 15); // Linear fog
 
 renderer.setClearColor(0x87ceeb); // Set background color to light blue
 
 const textureLoader = new THREE.TextureLoader();
 const waterTexture = textureLoader.load('water.jpg');
 const woodTexture = textureLoader.load('wood.jpg');
-
+const plankTexture = textureLoader.load('plank.jpeg')
 // Recolor the water texture to blue
 waterTexture.encoding = THREE.sRGBEncoding;
 waterTexture.anisotropy = 16;
@@ -40,14 +40,18 @@ const waterGeometry = new THREE.PlaneGeometry(100, 100, 100, 100);
 waterGeometry.rotateX(-Math.PI / 2); // Rotate by -90 degrees around the X-axis
 //Initialize the inventory system and UI
 var inventory = [];
-var inventoryUI = [];
+var selectedSlot = 0;
+addItemToInventory("ol' metal hook", 1)
 // Create a function to add items to the inventory
-const allowedItemTypes = ['wood', 'stone', 'plastic', 'leaf', 'sand', 'clay', 'nail' , 'copper', 'scrap', 'lead', 'tin', 'aluminum', 'coal',]
+const allowedItemTypes = ['wood', /*Added wood.jpg to test*/'wood.jpg', 'stone', 'plastic', 'leaf', 'sand', 'clay', 'nail' , 'copper', 'scrap', 'lead', 'tin', 'aluminum', 'coal',]
+// Create a function to add items to the inventory
 function addItemToInventory(item, count){
   // Check if the item is already in the inventory
-  if (inventory.includes(item)){
+  let index = inventory.indexOf(item);
+
+  if (index !== -1){
     // If it is, increment the count
-    inventory[inventory.indexOf(item)] += count;
+    inventory[index + 1] += count;
   } else {
     // If it is not, add it to the inventory
     inventory.push(item);
@@ -64,10 +68,34 @@ inventoryContainer.style.padding = '10px';
 inventoryContainer.style.background = 'rgba(255, 255, 255, 0.8)';
 document.body.appendChild(inventoryContainer);
 
-// Update Inventory UI function
+// Function to initialize and update Inventory UI
+function initializeInventoryUI() {
+  // Create the inventory container
+  const inventoryContainer = document.createElement('div');
+  inventoryContainer.style.position = 'absolute';
+  inventoryContainer.style.bottom = '10px';
+  inventoryContainer.style.right = '10px';
+  inventoryContainer.style.padding = '10px';
+  inventoryContainer.style.height = "50px";
+  inventoryContainer.style.width = "calc(100% - 40px)";
+  inventoryContainer.style.background = 'rgba(255, 255, 255, 0.8)';
+  inventoryContainer.style.color = "black";
+  document.body.appendChild(inventoryContainer);
+
+  // Assign it to a global variable for later reference
+  window.inventoryContainer = inventoryContainer;
+
+  // Update the UI initially
+  updateInventoryUI();
+}
+
+// Call the initializeInventoryUI function to set up the UI
+initializeInventoryUI();
+
+// Function to update Inventory UI
 function updateInventoryUI() {
   // Clear existing inventory UI
-  inventoryContainer.innerHTML = '';
+  window.inventoryContainer.innerHTML = '';
 
   for (let i = 0; i < inventory.length; i += 2) {
     const item = inventory[i];
@@ -75,13 +103,18 @@ function updateInventoryUI() {
 
     // Create a div element for each inventory item
     const itemDiv = document.createElement('div');
+    itemDiv.style.color = "black"
+    itemDiv.style.fontFamily = "Segoue UI, Helvetica, Sans-serif, system-ui"
+    itemDiv.style.width = "100%";
+    itemDiv.style.backgroundColor = "white"
     itemDiv.textContent = `${item} x${count}`;
-    itemDiv.style.marginBottom = '5px';
+    itemDiv.style.marginBottom = '10px';
     itemDiv.style.cursor = 'pointer';
 
-    inventoryContainer.appendChild(itemDiv);
+    window.inventoryContainer.appendChild(itemDiv);
   }
 }
+
 // Initialize the vertices array
 waterGeometry.vertices = [];
 
@@ -95,7 +128,14 @@ for (let i = 0; i <= 100; i++) {
     }
 }
 var underwaterFogColor = 0x0000ff; // Intense blue color
-const waterMaterial = new THREE.MeshBasicMaterial({ map: waterTexture, color: underwaterFogColor, opacity: 100}); // Set color to light blue
+const waterMaterial = new THREE.MeshBasicMaterial({
+  map: waterTexture,
+  side: THREE.DoubleSide,
+  opacity: 0.7,
+  transparent: true,
+  depthWrite: true,
+  color: 0x0000ff,
+}); // Set color to light blue
 const water = new THREE.Mesh(waterGeometry, waterMaterial);
 scene.add(water);
 water.position.y = -3;
@@ -113,7 +153,7 @@ function updateFogColor() {
     } else {
         renderer.setClearColor(0x87ceeb);
         gravityFactor = 0.02;
-        scene.fog = new THREE.Fog(fogColor, 1, 50)
+        scene.fog = new THREE.Fog(fogColor, 1, 15)
         scene.fog.color.set(fogColor); // Set default fog color when not underwater
     }
 }
@@ -219,21 +259,17 @@ function updatePlayerMovement(){
     xvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, xvelocity));
     zvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, zvelocity));
 }
+addItemToInventory("inventory test item", 1)
 
 const player = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
 scene.add(player)
 player.position.y = -2.05;
-const referenceViewingObject = new THREE.Mesh( new THREE.SphereGeometry(10), new THREE.MeshBasicMaterial({ color: "yellow"}))
-scene.add(referenceViewingObject)
-referenceViewingObject.position.z = -30
 //make the raft an array with each object having collision and having each object with their geometry and material defined, thereby allowing a build system to be built in the future
 const raft = []
 const obstacles = [];
 const trash = [];
 raft.push(new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 1), new THREE.MeshBasicMaterial({map: woodTexture})))
-
-obstacles.push(referenceViewingObject);
 
 
 function calculateBounceBackDistance(velocityMagnitude, speed) {
@@ -249,13 +285,13 @@ const minDistance = 0.1; // Set your desired minimum distance to prevent clippin
 
 function animate() {
   requestAnimationFrame(animate);
-
   // Handle collisions with obstacles and gravity effect
   handleObstacleCollisions(player, obstacles, minDistance, speed, gravityFactor);
 
   // Update player position based on velocity
   player.position.add(new THREE.Vector3(xvelocity, yvelocity, zvelocity));
-
+  //addItemToInventory("inventory test item", 1)
+  //console.log(inventory.toString())
   // Update player and camera velocity damping
   xvelocity *= 0.7; // Adjust damping factor for player movement
   yvelocity *= 0.7;
@@ -277,26 +313,39 @@ function animate() {
   updateFogColor();
   updatePlayerMovement();
   //Randomly spawn grabbable planks and materials and junk that moves away from the player
-  // Randomly spawn grabbable planks and materials and junk that moves away from the player
-  //Randomly spawn grabbable planks and materials and junk that moves away from the player
-  // Randomly spawn grabbable planks and materials and junk that moves away from the player
   if (Math.random() < 0.5) {
-      const plank = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.5), new THREE.MeshBasicMaterial({ map: woodTexture }));
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.5), new THREE.MeshBasicMaterial({ map: woodTexture}));
+    plank.userData.type = "wood";
+    const crate = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshBasicMaterial({ map: textureLoader.load("crate.jpg")}));
+    plank.userData.type = "crate";
+    
+    
 
       // Randomize offset in X and Z directions
-      const offsetX = (Math.random() - 0.5) * 50; // Adjust multiplier to widen the range
-      const offsetZ = (Math.random() - 0.5) * 50; // Adjust multiplier to widen the range
+      var offsetX = (Math.random() - 0.5) * 50; // Adjust multiplier to widen the range
+      var offsetZ = (Math.random() - 0.5) * 50; // Adjust multiplier to widen the range
 
       // Calculate the spawn position based on raft direction and speed, with the random offsets
-      const spawnPosition = raftDirection.clone().multiplyScalar(raftSpeed * 200); // Far behind the player
-      spawnPosition.x += offsetX;
-      spawnPosition.z += offsetZ;
-      spawnPosition.y = -3; // Ensure it spawns at ocean level
+      const firstSpawnPosition = raftDirection.clone().multiplyScalar(raftSpeed * 200); // Far behind the player
+      firstSpawnPosition.x += offsetX;
+      firstSpawnPosition.z += offsetZ;
+      firstSpawnPosition.y = -3; // Ensure it spawns at ocean level
+    var offsetX = (Math.random() - 0.5) * 50; // Adjust multiplier to widen the range
+    var offsetZ = (Math.random() - 0.5) * 50; // Adjust multiplier to widen the range
+    const secondSpawnPosition = raftDirection.clone().multiplyScalar(raftSpeed * 200); // Far behind the player
+    secondSpawnPosition.x += offsetX;
+    secondSpawnPosition.z += offsetZ;
+    secondSpawnPosition.y = -3; // Ensure it spawns at ocean level
 
-      plank.position.copy(spawnPosition);
+      plank.position.copy(firstSpawnPosition);
+      crate.position.copy(secondSpawnPosition);
 
       trash.push(plank);
       scene.add(plank);
+      if (Math.random() < 0.1){
+        trash.push(crate);
+        scene.add(crate);
+      }
   }
 
   // Update trash position and movement
@@ -306,12 +355,13 @@ function animate() {
       trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
 
       // Check if the trash piece is behind the fog
-      if (trashPiece.position.z > 20) {
+      if (trashPiece.position.distanceTo(player.position) > 20) {
           // Remove the trash piece from the scene
           scene.remove(trashPiece);
           trash.splice(index, 1);
       }
   });
+  
 
 
 
@@ -325,25 +375,23 @@ function animate() {
       // Move trash away from the player and raft
 trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
       //The player can press e while looking at the trash from a close distance to pick it up, only if the player is looking at the trash using ray tracing
-      if (player.position.distanceTo(trashPiece.position) < 1.5 && player.rotation.y > -Math.PI / 2 && player.rotation.y < Math.PI / 2 && player.rotation.x > -Math.PI / 2 && player.rotation.x < Math.PI / 2){
+      if (player.position.distanceTo(trashPiece.position) < ((trashPiece.scale.x + trashPiece.scale.y + trashPiece.scale.z)/3 * 3) && player.rotation.y > -Math.PI / 2 && player.rotation.y < Math.PI / 2 && player.rotation.x > -Math.PI / 2 && player.rotation.x < Math.PI / 2){
         if (keys["e"]){
           scene.remove(trashPiece);
           trash.splice(trash.indexOf(trashPiece), 1);
-          //add to inventory the type of trash picked up (use the texture and then remove the file extension, unless it is a crate or barrel)
-          //first, get the texture name of the trash and get file extension
-          const textureName = trashPiece.material.map.image.name;
-          const fileExtension = textureName.split('.').pop()
-          //Now, remove the file extension from the texture name
-          const trashType = textureName.replace(`.${fileExtension}`, '');
+          //add to inventory the type of trash picked up (use the type property unless its crate or barrel)
+          //debug test
+          console.log(trashPiece.userData.type)
+          
+          const trashType = trashPiece.userData.type;
+          //extra debug
+          // addItemToInventory(trashType, 1)
           //If it is not a crate or barrel, add it to the inventory
-          if (trashType !== "crate" && trashType !== "barrel"){
+          if (trashType != "crate" && trashType != "barrel"){
             //Check if the trashType is an allowed type
-            if (allowedItemTypes.includes(trashType)){
-              //Check if the inventory is full
-              if (inventory.length >= inventorySize){
-                //Use function to add item to inventory
-                addItemToInventory(trashType, 1);
-              }
+            if (inventory.length <= inventorySize){
+              //Use function to add item to inventory
+              addItemToInventory(trashType, 1);
             }
           }
           //If it is a barrel, add a random amount of each item to the inventory between 1 and 5
@@ -378,6 +426,7 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
       }
     
   });
+  updateInventoryUI();
 }
 
 animate();
