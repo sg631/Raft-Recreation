@@ -93,6 +93,7 @@ function initializeInventoryUI() {
 initializeInventoryUI();
 
 // Function to update Inventory UI
+// Function to update Inventory UI with selected slot
 function updateInventoryUI() {
   // Clear existing inventory UI
   window.inventoryContainer.innerHTML = '';
@@ -103,10 +104,10 @@ function updateInventoryUI() {
 
     // Create a div element for each inventory item
     const itemDiv = document.createElement('div');
-    itemDiv.style.color = "black"
-    itemDiv.style.fontFamily = "Segoue UI, Helvetica, Sans-serif, system-ui"
+    itemDiv.style.color = "black";
+    itemDiv.style.fontFamily = "Segoue UI, Helvetica, Sans-serif, system-ui";
+    itemDiv.style.backgroundColor = (i / 2 === selectedSlot ? "lightblue" : "white"); // Highlight selected slot
     itemDiv.style.width = "100%";
-    itemDiv.style.backgroundColor = "white"
     itemDiv.textContent = `${item} x${count}`;
     itemDiv.style.marginBottom = '10px';
     itemDiv.style.cursor = 'pointer';
@@ -114,6 +115,15 @@ function updateInventoryUI() {
     window.inventoryContainer.appendChild(itemDiv);
   }
 }
+
+// Update selected slot based on number keys
+document.addEventListener('keydown', (event) => {
+  const key = event.key;
+  if (parseInt(key) >= 1 && parseInt(key) <= inventory.length / 2) {
+    selectedSlot = parseInt(key) - 1; // Subtract 1 to match array index
+    updateInventoryUI(); // Update UI with new selected slot
+  }
+});
 
 // Initialize the vertices array
 waterGeometry.vertices = [];
