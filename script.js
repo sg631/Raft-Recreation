@@ -71,29 +71,16 @@ document.body.appendChild(inventoryContainer);
 // Function to initialize and update Inventory UI
 // Initialize the inventory icons array
 const inventoryIcons = {
-  'wood.jpg': 'wood',
-  'stone': 'stone',
-  'leaf': 'leaf',
-  'scrap': 'scrap',
-  // Add more items here as needed
+  'wood': 'wood.jpg', // Example mapping for wood item
+  'stone': 'stone.jpg', // Example mapping for stone item
+  'leaf': 'leaf.jpg', // Example mapping for leaf item
+  'scrap': 'scrap.jpg', // Example mapping for scrap item
+  // Add mappings for other items as needed
 };
 
 // Function to get the image path for an item
 function getItemImagePath(item) {
-  const imageExtensions = ['jpg', 'png', 'jpeg', 'gif'];
-
-  for (const extension of imageExtensions) {
-    const imagePath = `${item}.${extension}`;
-    // Check if the image exists
-    // For simplicity, I'm assuming all images are in the root directory
-    // You can modify this to include a folder path if needed
-    if (inventoryIcons.hasOwnProperty(imagePath)) {
-      return imagePath;
-    }
-  }
-
-  // If no matching image is found, use the placeholder
-  return 'undefined_ico.png';
+  return inventoryIcons[item] || 'undefined_ico.png'; // Return item image path or a placeholder if not found
 }
 
 // Function to initialize and update Inventory UI with icons
@@ -115,6 +102,7 @@ function initializeInventoryUI() {
 }
 
 // Function to update Inventory UI with icons
+// Function to update Inventory UI with icons and count in a horizontal list
 function updateInventoryUI() {
   window.inventoryContainer.innerHTML = '';
 
@@ -122,27 +110,38 @@ function updateInventoryUI() {
     const item = inventory[i];
     const count = inventory[i + 1];
 
-    const iconDiv = document.createElement('div');
-    iconDiv.style.display = 'flex';
-    iconDiv.style.alignItems = 'center';
-    iconDiv.style.marginBottom = '10px';
-    iconDiv.style.cursor = 'pointer';
+    const slotDiv = document.createElement('div');
+    slotDiv.style.display = 'inline-block';
+    slotDiv.style.marginRight = '10px';
+    slotDiv.style.padding = '5px';
+    slotDiv.style.border = '1px solid transparent';
+
+    if (i === selectedSlot * 2) {
+      slotDiv.style.border = '1px solid blue'; // Add blue outline to the selected slot
+    }
 
     const iconImg = document.createElement('img');
     const imagePath = getItemImagePath(item);
     iconImg.src = imagePath;
-    iconImg.style.width = "30px"; // Set the size of the icon
-    iconImg.style.height = "30px"; // Set the size of the icon
-    iconImg.style.marginRight = '10px';
-    iconDiv.appendChild(iconImg);
+    iconImg.style.width = '24px'; // Set the width of the icon image
+    iconImg.style.height = '24px'; // Set the height of the icon image
+    slotDiv.appendChild(iconImg);
 
     const textSpan = document.createElement('span');
-    textSpan.textContent = `${item} x${count}`;
-    iconDiv.appendChild(textSpan);
+    textSpan.textContent = `x${count}`;
+    slotDiv.appendChild(textSpan);
 
-    window.inventoryContainer.appendChild(iconDiv);
+    window.inventoryContainer.appendChild(slotDiv);
   }
 }
+
+// Update selected slot based on number keys
+document.addEventListener('keydown', (event) => {
+  if (event.key >= '1' && event.key <= '9') {
+    selectedSlot = parseInt(event.key) - 1; // Set selected slot based on number key pressed
+    updateInventoryUI(); // Update the UI to reflect the selected slot
+  }
+});
 
 // Call the initializeInventoryUI function to set up the UI
 initializeInventoryUI();
