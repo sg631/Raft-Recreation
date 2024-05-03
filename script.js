@@ -69,8 +69,35 @@ inventoryContainer.style.background = 'rgba(255, 255, 255, 0.8)';
 document.body.appendChild(inventoryContainer);
 
 // Function to initialize and update Inventory UI
+// Initialize the inventory icons array
+const inventoryIcons = {
+  'wood.jpg': 'wood',
+  'stone': 'stone',
+  'leaf': 'leaf',
+  'scrap': 'scrap',
+  // Add more items here as needed
+};
+
+// Function to get the image path for an item
+function getItemImagePath(item) {
+  const imageExtensions = ['jpg', 'png', 'jpeg', 'gif'];
+
+  for (const extension of imageExtensions) {
+    const imagePath = `${item}.${extension}`;
+    // Check if the image exists
+    // For simplicity, I'm assuming all images are in the root directory
+    // You can modify this to include a folder path if needed
+    if (inventoryIcons.hasOwnProperty(imagePath)) {
+      return imagePath;
+    }
+  }
+
+  // If no matching image is found, use the placeholder
+  return 'undefined_ico.png';
+}
+
+// Function to initialize and update Inventory UI with icons
 function initializeInventoryUI() {
-  // Create the inventory container
   const inventoryContainer = document.createElement('div');
   inventoryContainer.style.position = 'absolute';
   inventoryContainer.style.bottom = '10px';
@@ -82,48 +109,43 @@ function initializeInventoryUI() {
   inventoryContainer.style.color = "black";
   document.body.appendChild(inventoryContainer);
 
-  // Assign it to a global variable for later reference
   window.inventoryContainer = inventoryContainer;
 
-  // Update the UI initially
   updateInventoryUI();
 }
 
-// Call the initializeInventoryUI function to set up the UI
-initializeInventoryUI();
-
-// Function to update Inventory UI
-// Function to update Inventory UI with selected slot
+// Function to update Inventory UI with icons
 function updateInventoryUI() {
-  // Clear existing inventory UI
   window.inventoryContainer.innerHTML = '';
 
   for (let i = 0; i < inventory.length; i += 2) {
     const item = inventory[i];
     const count = inventory[i + 1];
 
-    // Create a div element for each inventory item
-    const itemDiv = document.createElement('div');
-    itemDiv.style.color = "black";
-    itemDiv.style.fontFamily = "Segoue UI, Helvetica, Sans-serif, system-ui";
-    itemDiv.style.backgroundColor = (i / 2 === selectedSlot ? "lightblue" : "white"); // Highlight selected slot
-    itemDiv.style.width = "100%";
-    itemDiv.textContent = `${item} x${count}`;
-    itemDiv.style.marginBottom = '10px';
-    itemDiv.style.cursor = 'pointer';
+    const iconDiv = document.createElement('div');
+    iconDiv.style.display = 'flex';
+    iconDiv.style.alignItems = 'center';
+    iconDiv.style.marginBottom = '10px';
+    iconDiv.style.cursor = 'pointer';
 
-    window.inventoryContainer.appendChild(itemDiv);
+    const iconImg = document.createElement('img');
+    const imagePath = getItemImagePath(item);
+    iconImg.src = imagePath;
+    iconImg.style.width = "30px"; // Set the size of the icon
+    iconImg.style.height = "30px"; // Set the size of the icon
+    iconImg.style.marginRight = '10px';
+    iconDiv.appendChild(iconImg);
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = `${item} x${count}`;
+    iconDiv.appendChild(textSpan);
+
+    window.inventoryContainer.appendChild(iconDiv);
   }
 }
 
-// Update selected slot based on number keys
-document.addEventListener('keydown', (event) => {
-  const key = event.key;
-  if (parseInt(key) >= 1 && parseInt(key) <= inventory.length / 2) {
-    selectedSlot = parseInt(key) - 1; // Subtract 1 to match array index
-    updateInventoryUI(); // Update UI with new selected slot
-  }
-});
+// Call the initializeInventoryUI function to set up the UI
+initializeInventoryUI();
 
 // Initialize the vertices array
 waterGeometry.vertices = [];
