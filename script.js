@@ -24,7 +24,7 @@ const waterTexture = textureLoader.load('water.jpg');
 const woodTexture = textureLoader.load('wood.jpg');
 const plankTexture = textureLoader.load('plank.jpeg')
 const scrapTexture = textureLoader.load('scrap.jpg');
-const crateTexture = textureLoader.load('crate.jpg');
+const crateTexture = textureLoader.load('cratetexture.jpg');
 const leafTexture = textureLoader.load('leaf.jpg')
 
 // Recolor the water texture to blue
