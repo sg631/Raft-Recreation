@@ -19,14 +19,18 @@ scene.fog = new THREE.Fog(fogColor, 1, 15); // Linear fog
 renderer.setClearColor(0x87ceeb); // Set background color to light blue
 
 const textureLoader = new THREE.TextureLoader();
+
 const waterTexture = textureLoader.load('water.jpg');
 const woodTexture = textureLoader.load('wood.jpg');
 const plankTexture = textureLoader.load('plank.jpeg')
+const scrapTexture = textureLoader.load('scrap.jpg');
+const crateTexture = textureLoader.load('crate.jpg');
+const leafTexture = textureLoader.load('leaf.jpg')
+
 // Recolor the water texture to blue
 waterTexture.encoding = THREE.sRGBEncoding;
 waterTexture.anisotropy = 16;
 //Set the repeat to be very small so the water looks detailed
-waterTexture.repeat.set(0.5, 0.5)
 
 const raftSpeed = 0.02; // Set the speed of the raft
 const raftDirection = new THREE.Vector3(1, 0, 0); // Set the direction of the raft
@@ -46,18 +50,22 @@ addItemToInventory("ol' metal hook", 1)
 const allowedItemTypes = ['wood', /*Added wood.jpg to test*/'wood.jpg', 'stone', 'plastic', 'leaf', 'sand', 'clay', 'nail' , 'copper', 'scrap', 'lead', 'tin', 'aluminum', 'coal',]
 // Create a function to add items to the inventory
 function addItemToInventory(item, count){
-  // Check if the item is already in the inventory
-  let index = inventory.indexOf(item);
+  // Check if the item is defined and included in allowedItemTypes
+  if (item) {
+    // Check if the item is already in the inventory
+    let index = inventory.indexOf(item);
 
-  if (index !== -1){
-    // If it is, increment the count
-    inventory[index + 1] += count;
-  } else {
-    // If it is not, add it to the inventory
-    inventory.push(item);
-    inventory.push(count);
+    if (index !== -1){
+      // If it is, increment the count
+      inventory[index + 1] += count;
+    } else {
+      // If it is not, add it to the inventory
+      inventory.push(item);
+      inventory.push(count);
+    }
   }
 }
+
 //Function to update Inventory UI
 // Create a container for the inventory UI
 const inventoryContainer = document.createElement('div');
@@ -71,16 +79,26 @@ document.body.appendChild(inventoryContainer);
 // Function to initialize and update Inventory UI
 // Initialize the inventory icons array
 const inventoryIcons = {
-  'wood': 'wood.jpg', // Example mapping for wood item
-  'stone': 'stone.jpg', // Example mapping for stone item
-  'leaf': 'leaf.jpg', // Example mapping for leaf item
+  'wood': 'plank.jpg', // Example mapping for wood item
   'scrap': 'scrap.jpg', // Example mapping for scrap item
+  'stone' : 'stone_icon.jpg',
+  'leaf' : 'leaf.jpg',
+  'plastic' : 'plastic.jpg',
+  
   // Add mappings for other items as needed
 };
-
+// Function to get the image path for an item
 // Function to get the image path for an item
 function getItemImagePath(item) {
-  return inventoryIcons[item] || 'undefined_ico.png'; // Return item image path or a placeholder if not found
+  const variationKey = `${item}_${selectedSlot+1}`; // Assuming you want to include the selected slot in the key for variations
+
+  if (inventoryIcons[variationKey]) {
+    return inventoryIcons[variationKey];
+  } else if (inventoryIcons[item]) {
+    return inventoryIcons[item];
+  } else {
+    return 'undefined_ico.png'; // Return a placeholder image path if the item is not found
+  }
 }
 
 // Function to initialize and update Inventory UI with icons
@@ -164,13 +182,13 @@ const waterMaterial = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
   opacity: 0.7,
   transparent: true,
-  depthWrite: true,
+  depthWrite: false,
   color: 0x0000ff,
 }); // Set color to light blue
 const water = new THREE.Mesh(waterGeometry, waterMaterial);
 scene.add(water);
 water.position.y = -3;
-const light = new THREE.PointLight(0xffffff, 1, 100);
+const sun = new THREE.DirectionalLight(0xffffff, 1);
 
 
 function updateFogColor() {
@@ -290,7 +308,6 @@ function updatePlayerMovement(){
     xvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, xvelocity));
     zvelocity = Math.min(maxSpeed, Math.max(-maxSpeed, zvelocity));
 }
-addItemToInventory("inventory test item", 1)
 
 const player = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
@@ -345,12 +362,19 @@ function animate() {
   updatePlayerMovement();
   //Randomly spawn grabbable planks and materials and junk that moves away from the player
   if (Math.random() < 0.5) {
+    const leafMaterial = new THREE.MeshBasicMaterial({ 
+      map: leafTexture,
+      transparent: true, // Enable transparency
+      alphaTest: 0.5, // Set the alpha test threshold value (adjust as needed)
+      side: THREE.DoubleSide, // Render both sides of the material
+    });
       const plank = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.5), new THREE.MeshBasicMaterial({ map: woodTexture}));
     plank.userData.type = "wood";
-    const crate = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshBasicMaterial({ map: textureLoader.load("crate.jpg")}));
-    plank.userData.type = "crate";
+    const crate = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshBasicMaterial({ map: crateTexture}));
+    crate.userData.type = "crate";
     
-    
+    const leaf = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), leafMaterial);
+    leaf.userData.type = "leaf";
 
       // Randomize offset in X and Z directions
       var offsetX = (Math.random() - 0.5) * 50; // Adjust multiplier to widen the range
@@ -367,13 +391,22 @@ function animate() {
     secondSpawnPosition.x += offsetX;
     secondSpawnPosition.z += offsetZ;
     secondSpawnPosition.y = -3; // Ensure it spawns at ocean level
-
+    var offsetX = (Math.random() - 0.5) * 50;
+    var offsetZ = (Math.random() - 0.5) * 50;
+    const thirdSpawnPosition = raftDirection.clone().multiplyScalar(raftSpeed * 200);
+thirdSpawnPosition.x += offsetX;
+    thirdSpawnPosition.z += offsetZ
+    thirdSpawnPosition.y = -3; // Ensure it spawns at ocean level
+    
       plank.position.copy(firstSpawnPosition);
       crate.position.copy(secondSpawnPosition);
+      leaf.position.copy(thirdSpawnPosition);
 
       trash.push(plank);
+      trash.push(leaf);
+      scene.add(leaf)
       scene.add(plank);
-      if (Math.random() < 0.1){
+      if (Math.random() < 0.01){
         trash.push(crate);
         scene.add(crate);
       }
@@ -458,6 +491,7 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
     
   });
   updateInventoryUI();
+  
 }
 
 animate();
