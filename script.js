@@ -78,24 +78,55 @@ document.body.appendChild(inventoryContainer);
 
 // Function to initialize and update Inventory UI
 // Initialize the inventory icons array
-const inventoryIcons = {
-  'wood': 'plank.jpg', // Example mapping for wood item
-  'scrap': 'scrap.jpg', // Example mapping for scrap item
-  'stone' : 'stone_icon.jpg',
-  'leaf' : 'leaf.jpg',
-  'plastic' : 'plastic.jpg',
-  
-  // Add mappings for other items as needed
+const inventoryConfig = {
+  'wood': {
+    imagePath: 'plank.jpg',
+    displayName: 'Wood Plank',
+    isTool: false,
+    durability: 0,
+  },
+  'scrap': {
+    imagePath: 'scrap.jpg',
+    displayName: 'Scrap',
+    isTool: true,
+    durability: 50,
+  },
+  'stone': {
+    imagePath: 'stone_icon.jpg',
+    displayName: 'Stone',
+    isTool: true,
+    durability: 100,
+  },
+  'leaf': {
+    imagePath: 'leaf.jpg',
+    displayName: 'Leaf',
+    isTool: false,
+    durability: 0,
+  },
+  'plastic': {
+    imagePath: 'plastic.jpg',
+    displayName: 'Plastic',
+    isTool: false,
+    durability: 0,
+  },
+  'smiley': {
+    imagePath: 'smiley!.jpeg',
+    displayName: 'Smiley Face',
+    isTool: false,
+    durability: 0,
+  },
+  // Add more items as needed
 };
 // Function to get the image path for an item
 // Function to get the image path for an item
+// Function to get the image path for an item
 function getItemImagePath(item) {
-  const variationKey = `${item}_${selectedSlot+1}`; // Assuming you want to include the selected slot in the key for variations
+  const variationKey = `${item}_${selectedSlot + 1}`; // Update key to match item names and selected slot
 
-  if (inventoryIcons[variationKey]) {
-    return inventoryIcons[variationKey];
-  } else if (inventoryIcons[item]) {
-    return inventoryIcons[item];
+  if (inventoryConfig[variationKey]) {
+    return inventoryConfig[variationKey].imagePath; // Access imagePath property of the item object
+  } else if (inventoryConfig[item]) {
+    return inventoryConfig[item].imagePath; // Access imagePath property of the item object
   } else {
     return 'undefined_ico.png'; // Return a placeholder image path if the item is not found
   }
@@ -361,7 +392,7 @@ function animate() {
   updateFogColor();
   updatePlayerMovement();
   //Randomly spawn grabbable planks and materials and junk that moves away from the player
-  if (Math.random() < 0.5) {
+  if (Math.random() < 0.1) {
     const leafMaterial = new THREE.MeshBasicMaterial({ 
       map: leafTexture,
       transparent: true, // Enable transparency
@@ -406,9 +437,12 @@ thirdSpawnPosition.x += offsetX;
       trash.push(leaf);
       scene.add(leaf)
       scene.add(plank);
-      if (Math.random() < 0.01){
+      if (Math.random() < 0.001){
         trash.push(crate);
         scene.add(crate);
+        if (Math.random() < 0.000000000001){
+          addItemToInventory("smiley", 1)
+        }
       }
   }
 
