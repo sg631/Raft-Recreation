@@ -45,7 +45,7 @@ waterGeometry.rotateX(-Math.PI / 2); // Rotate by -90 degrees around the X-axis
 //Initialize the inventory system and UI
 var inventory = [];
 var selectedSlot = 0;
-addItemToInventory("ol' metal hook", 1)
+addItemToInventory("plastic_hook", 1)
 // Create a function to add items to the inventory
 const allowedItemTypes = ['wood', /*Added wood.jpg to test*/'wood.jpg', 'stone', 'plastic', 'leaf', 'sand', 'clay', 'nail' , 'copper', 'scrap', 'lead', 'tin', 'aluminum', 'coal',]
 // Create a function to add items to the inventory
@@ -94,8 +94,8 @@ const inventoryConfig = {
   'stone': {
     imagePath: 'stone_icon.jpg',
     displayName: 'Stone',
-    isTool: true,
-    durability: 100,
+    isTool: false,
+    durability: 0,
   },
   'leaf': {
     imagePath: 'leaf.jpg',
@@ -115,6 +115,12 @@ const inventoryConfig = {
     isTool: false,
     durability: 0,
   },
+  'plastic_hook': {
+    imagePath: 'placeholder',
+    displayName: 'Plastic Hook',
+    isTool: true,
+    durability: 100,
+  }
   // Add more items as needed
 };
 // Function to get the image path for an item
@@ -152,6 +158,8 @@ function initializeInventoryUI() {
 
 // Function to update Inventory UI with icons
 // Function to update Inventory UI with icons and count in a horizontal list
+// Function to update Inventory UI with icons and durability bars for tools
+// Function to update Inventory UI with icons and durability bars for tools
 function updateInventoryUI() {
   window.inventoryContainer.innerHTML = '';
 
@@ -179,6 +187,24 @@ function updateInventoryUI() {
     const textSpan = document.createElement('span');
     textSpan.textContent = `x${count}`;
     slotDiv.appendChild(textSpan);
+
+    // Check if inventoryConfig for the item is defined before accessing isTool property
+    if (inventoryConfig[item] && inventoryConfig[item].isTool && inventoryConfig[item].durability) {
+      const durabilityBar = document.createElement('div');
+      durabilityBar.style.width = '60px'; // Set the width of the durability bar
+      durabilityBar.style.height = '10px'; // Set the height of the durability bar
+      durabilityBar.style.backgroundColor = 'lightgray'; // Set the background color of the durability bar
+      durabilityBar.style.border = '1px solid black'; // Add border to the durability bar
+
+      const durabilityProgress = document.createElement('div');
+      const durabilityPercentage = (inventoryConfig[item].durability / 100) * 100; // Calculate durability percentage
+      durabilityProgress.style.width = `${durabilityPercentage}%`; // Set the width of the durability progress bar
+      durabilityProgress.style.height = '100%'; // Set the height of the durability progress bar
+      durabilityProgress.style.backgroundColor = 'lightgreen'; // Set the background color of the durability progress bar
+
+      durabilityBar.appendChild(durabilityProgress);
+      slotDiv.appendChild(durabilityBar);
+    }
 
     window.inventoryContainer.appendChild(slotDiv);
   }
@@ -437,10 +463,10 @@ thirdSpawnPosition.x += offsetX;
       trash.push(leaf);
       scene.add(leaf)
       scene.add(plank);
-      if (Math.random() < 0.001){
+      if (Math.random() < 0.01){
         trash.push(crate);
         scene.add(crate);
-        if (Math.random() < 0.000000000001){
+        if (Math.random() < 0.00000001){
           addItemToInventory("smiley", 1)
         }
       }
