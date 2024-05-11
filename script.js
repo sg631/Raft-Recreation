@@ -51,6 +51,9 @@ function winAchievement(achievement) {
     'smiley': {
       icon: 'smiley!.jpeg',
       displayText: 'EXTREMELY EXTREMELY RARE: Smiley! You have a 0.00001% (1/10,000,000) chance of getting this achievement and item every frame. Keep the item and treasure it'
+    },
+    'MMMMMMMMM': {
+      displayText: 'MMMMMMMMMMMMMMMMMMMMMMMMMMM (press M)'
     }
   };
 
@@ -413,7 +416,8 @@ var keys = {
   q:false,
   e:false,
   shift:false,
-  tabKey:false
+  tabKey:false,
+  m: false,
 }
 document.addEventListener('keydown', (event) => {
   keys[event.key] = true;
@@ -869,7 +873,9 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
     
   });
   updateInventoryUI();
-  
+  if (keys["m"]){
+    winAchievement("MMMMMMMMM")
+  }
 }
 
 animate();
