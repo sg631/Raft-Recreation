@@ -80,7 +80,7 @@ function winAchievement(achievement) {
     localStorage.setItem(achievement, true); // Mark achievement as unlocked
   }
 }
-function customAlert(message, ...buttons) {
+function customAlert(message, parameters, ...buttons) {
   const alertContainer = document.createElement('div');
   alertContainer.style.position = 'absolute';
   alertContainer.style.top = '50%';
@@ -90,7 +90,20 @@ function customAlert(message, ...buttons) {
   alertContainer.style.background = 'rgba(255, 255, 255, 0.8)';
   alertContainer.style.border = '2px solid black';
   alertContainer.style.zIndex = '999';
-
+  //Take the parameters string and detect what parameters there are, in the format "parameter1: value1, value, etc.;parameter2: value2, value, etc."
+  const parametersArray = parameters.split(';');
+  const parameterObjects = {};
+  for (const parameter of parametersArray){
+    const [parameterName, parameterValue] = parameter.split(':');
+    parameterObjects[parameterName] = parameterValue;
+  }
+  //Get the custom parameter "auto-dismiss" and if it is defined delete the message after the value seconds
+  const autoDismiss = parameterObjects['auto-dismiss'];
+  if (autoDismiss){
+    setTimeout(() => {
+      alertContainer.remove();
+    }, autoDismiss * 1000);
+  }
   const messageText = document.createElement('p');
   messageText.textContent = message;
   alertContainer.appendChild(messageText);
@@ -497,6 +510,10 @@ function saveGame(){
           // Add other relevant game state data to save
       }));
 }
+//set a timer to save the game every two minutes
+setInterval(() => {saveGame();customAlert("Saved!", "auto-dismiss: 2")}, 60000);
+
+//make a save button
 let saveButton = document.createElement("button");
 saveButton.textContent = "Save";
 saveButton.style.marginTop = "10px";
