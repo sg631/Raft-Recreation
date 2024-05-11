@@ -48,6 +48,10 @@ function winAchievement(achievement) {
       icon: 'placeholder',
       displayText: 'You are.. TRASH.. sorry wrong achievement.. You picked up.. Trash!'
     },
+    'smiley': {
+      icon: 'smiley!.jpeg',
+      displayText: 'EXTREMELY EXTREMELY RARE: Smiley! You have a 0.00001% (1/10,000,000) chance of getting this achievement and item every frame. Keep the item and treasure it'
+    }
   };
 
   if (!localStorage.getItem(achievement)) { // Check if achievement has not been unlocked
@@ -695,8 +699,9 @@ thirdSpawnPosition.x += offsetX;
       if (Math.random() < 0.01){
         trash.push(crate);
         scene.add(crate);
-        if (Math.random() < 0.00000001){
-          addItemToInventory("smiley", 1)
+        if (Math.random() < 0.000001){
+          addItemToInventory("smiley", 1);
+          winAchievement("smiley")
         }
       }
   }
