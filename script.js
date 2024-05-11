@@ -63,7 +63,10 @@ function winAchievement(achievement) {
     notificationBar.style.padding = '10px';
     notificationBar.style.backgroundColor = 'rgba(255, 215, 0, 0.8)';
     notificationBar.style.color = 'black';
-
+    notificationBar.style.fontSize = '20px';
+    notificationBar.style.textAlign = 'center';
+    notificationBar.style.zIndex = '9999';
+    notificationBar.style.display = 'none';
     const achievementIcon = document.createElement('img');
     achievementIcon.src = achievementConfig[achievement].icon;
     achievementIcon.style.width = '50px';
@@ -620,6 +623,87 @@ function loadGame() {
 
 // Call loadGameState function when your game starts or when needed
 loadGame();
+
+// Function to initialize crafting menu UI
+function initializeCraftingMenu() {
+  const craftingMenu = document.createElement('div');
+  craftingMenu.style.position = 'absolute';
+  craftingMenu.style.top = '50%';
+  craftingMenu.style.left = '50%';
+  craftingMenu.style.transform = 'translate(-50%, -50%)';
+  craftingMenu.style.padding = '20px';
+  craftingMenu.style.background = 'rgba(255, 255, 255, 0.8)';
+  craftingMenu.style.border = '2px solid black';
+  craftingMenu.style.zIndex = '999';
+  craftingMenu.style.display = 'none'; // Initially hide crafting menu
+  craftingMenu.id = "craftingMenu";
+
+  // Add crafting recipes to the menu
+  for (const recipe in craftingRecipes) {
+    const recipeElement = document.createElement('div');
+    recipeElement.textContent = recipe;
+    recipeElement.style.marginTop = '10px';
+    recipeElement.style.cursor = 'pointer';
+    recipeElement.addEventListener('click', () => craftItem(recipe));
+    craftingMenu.appendChild(recipeElement);
+  }
+
+  document.body.appendChild(craftingMenu);
+}
+
+// Define crafting recipes
+const craftingRecipes = {
+  'Wood to Stone Test': {
+    materials: { 'wood': 5 },
+    result: 'stone'
+  },
+  // Add more crafting recipes as needed
+};
+// Call initializeCraftingMenu to set up the crafting menu
+initializeCraftingMenu();
+function toggleCraftingMenu() {
+  document.getElementById("craftingMenu").style.display = craftingMenu.style.display === 'none' ? 'block' : 'none';
+}
+
+
+// Event listener for z key press
+document.addEventListener("keydown", (e) => {
+    if (e.key === "z") {
+        toggleCraftingMenu();
+        e.preventDefault();
+    }
+});
+
+// Function to handle crafting logic
+function craftItem(recipeName) {
+    const materials = craftingRecipes[recipeName].materials;
+
+    // Check if the player has enough materials in their inventory
+    for (const material in materials) {
+        if (inventory[material] >= materials[material]) {
+            customAlert("Insufficient materials to craft " + recipeName, "auto-dismiss: 2");
+            return; // Stop crafting if materials are insufficient
+        }
+    }
+
+    // Subtract materials from inventory
+    for (const material in materials) {
+        inventory[material] -= materials[material];
+    }
+
+    // Add crafted item to inventory
+    addItemToInventory(craftingRecipes[recipeName].result, 1);
+
+    // Update inventory UI
+    updateInventoryUI();
+
+    // Display crafting success message
+    customAlert("Crafted " + recipeName, "auto-dismiss: 2");
+}
+
+
+
+
 
 function animate() {
   requestAnimationFrame(animate);
