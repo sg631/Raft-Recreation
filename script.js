@@ -45,7 +45,7 @@ const inventorySize = 10;
 function winAchievement(achievement) {
   const achievementConfig = {
     'trash': {
-      icon: 'placeholder',
+      icon: 'trashcan_nobg.png',
       displayText: 'You are.. TRASH.. sorry wrong achievement.. You picked up.. Trash!'
     },
     'smiley': {
@@ -206,7 +206,7 @@ const inventoryConfig = {
     durability: 0,
   },
   'plastic_hook': {
-    imagePath: 'placeholder',
+    imagePath: 'undefined_ico.png',
     displayName: 'Plastic Hook',
     isTool: true,
     durability: 100,
