@@ -520,9 +520,10 @@ function saveGame(){
           // Add other game state variables as needed
           // Add other relevant game state data to save
       }));
+    customAlert("Saved!", "auto-dismiss: 2")
 }
 //set a timer to save the game every two minutes
-setInterval(() => {saveGame();customAlert("Saved!", "auto-dismiss: 2")}, 60000);
+setInterval(() => {saveGame()}, 60000);
 
 //make a save button
 let saveButton = document.createElement("button");
@@ -658,7 +659,7 @@ function initializeCraftingMenu() {
 // Define crafting recipes
 const craftingRecipes = {
   'Wood to Stone Test': {
-    materials: { 'wood': 5 },
+    materials: {'wood': 1},
     result: 'stone'
   },
   // Add more crafting recipes as needed
@@ -684,7 +685,9 @@ function craftItem(recipeName) {
 
     // Check if the player has enough materials in their inventory
     for (const material in materials) {
-        if (inventory[material] >= materials[material]) {
+        const inventoryItemIndex = inventory.indexOf(material);
+        const inventoryItemCount = inventoryItemIndex !== -1 ? inventory[inventoryItemIndex + 1] : 0;
+        if (inventoryItemCount < materials[material]) {
             customAlert("Insufficient materials to craft " + recipeName, "auto-dismiss: 2");
             return; // Stop crafting if materials are insufficient
         }
@@ -692,7 +695,14 @@ function craftItem(recipeName) {
 
     // Subtract materials from inventory
     for (const material in materials) {
-        inventory[material] -= materials[material];
+        const inventoryItemIndex = inventory.indexOf(material);
+        if (inventoryItemIndex !== -1) {
+            inventory[inventoryItemIndex + 1] -= materials[material];
+            if (inventory[inventoryItemIndex + 1] <= 0) {
+                // Remove the item from inventory if its count becomes zero or negative
+                inventory.splice(inventoryItemIndex, 2);
+            }
+        }
     }
 
     // Add crafted item to inventory
@@ -704,6 +714,7 @@ function craftItem(recipeName) {
     // Display crafting success message
     customAlert("Crafted " + recipeName, "auto-dismiss: 2");
 }
+
 
 
 
