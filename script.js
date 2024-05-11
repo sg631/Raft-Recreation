@@ -32,14 +32,84 @@ waterTexture.encoding = THREE.sRGBEncoding;
 waterTexture.anisotropy = 16;
 //Set the repeat to be very small so the water looks detailed
 
-const raftSpeed = 0.02; // Set the speed of the raft
-const raftDirection = new THREE.Vector3(1, 0, 0); // Set the direction of the raft
+var raftSpeed = 0.02; // Set the speed of the raft
+var raftDirection = new THREE.Vector3(1, 0, 0); // Set the direction of the raft
 
 //----------Code Here--------
 var xvelocity = 0;
 var yvelocity = 0;
 var zvelocity = 0;
 const inventorySize = 10;
+
+
+function winAchievement(achievement) {
+  const achievementConfig = {
+    'trash': {
+      icon: 'placeholder',
+      displayText: 'You are.. TRASH.. sorry wrong achievement.. You picked up.. Trash!'
+    },
+  };
+
+  if (!localStorage.getItem(achievement)) { // Check if achievement has not been unlocked
+    const notificationBar = document.createElement('div');
+    notificationBar.style.position = 'fixed';
+    notificationBar.style.top = '0';
+    notificationBar.style.left = '0';
+    notificationBar.style.width = '100%';
+    notificationBar.style.padding = '10px';
+    notificationBar.style.backgroundColor = 'rgba(255, 215, 0, 0.8)';
+    notificationBar.style.color = 'black';
+
+    const achievementIcon = document.createElement('img');
+    achievementIcon.src = achievementConfig[achievement].icon;
+    achievementIcon.style.width = '50px';
+    achievementIcon.style.height = '50px';
+    achievementIcon.style.marginRight = '10px';
+    notificationBar.appendChild(achievementIcon);
+
+    const achievementText = document.createElement('span');
+    achievementText.textContent = achievementConfig[achievement].displayText;
+    notificationBar.appendChild(achievementText);
+
+    document.body.appendChild(notificationBar);
+
+    setTimeout(() => {
+      document.body.removeChild(notificationBar);
+    }, 5000); // Auto-dismiss after 5 seconds
+
+    localStorage.setItem(achievement, true); // Mark achievement as unlocked
+  }
+}
+function customAlert(message, ...buttons) {
+  const alertContainer = document.createElement('div');
+  alertContainer.style.position = 'absolute';
+  alertContainer.style.top = '50%';
+  alertContainer.style.left = '50%';
+  alertContainer.style.transform = 'translate(-50%, -50%)';
+  alertContainer.style.padding = '20px';
+  alertContainer.style.background = 'rgba(255, 255, 255, 0.8)';
+  alertContainer.style.border = '2px solid black';
+  alertContainer.style.zIndex = '999';
+
+  const messageText = document.createElement('p');
+  messageText.textContent = message;
+  alertContainer.appendChild(messageText);
+
+  buttons.forEach(buttonLabel => {
+    const button = document.createElement('button');
+    button.textContent = buttonLabel;
+    button.style.marginTop = '10px';
+    button.style.padding = '5px 10px';
+    button.style.background = 'lightgray';
+    button.style.cursor = 'pointer';
+    button.addEventListener('click', () => {
+      document.body.removeChild(alertContainer);
+    });
+    alertContainer.appendChild(button);
+  });
+
+  document.body.appendChild(alertContainer);
+}
 const waterGeometry = new THREE.PlaneGeometry(100, 100, 100, 100);
 waterGeometry.rotateX(-Math.PI / 2); // Rotate by -90 degrees around the X-axis
 //Initialize the inventory system and UI
@@ -387,6 +457,148 @@ function calculateBounceBackDistance(velocityMagnitude, speed) {
 
 const minDistance = 0.1; // Set your desired minimum distance to prevent clipping
 
+// Define variables for pause menu elements
+let pauseMenu = document.createElement("div");
+pauseMenu.style.position = "fixed";
+pauseMenu.style.top = "50%";
+pauseMenu.style.left = "50%";
+pauseMenu.style.transform = "translate(-50%, -50%)";
+pauseMenu.style.padding = "20px";
+pauseMenu.style.background = "rgba(255, 255, 255, 0.8)";
+pauseMenu.style.border = "2px solid black";
+pauseMenu.style.zIndex = "999";
+pauseMenu.style.display = "none"; // Initially hide pause menu
+
+// Resume button
+let resumeButton = document.createElement("button");
+resumeButton.textContent = "Resume";
+resumeButton.style.marginTop = "10px";
+resumeButton.style.padding = "5px 10px";
+resumeButton.style.background = "lightgray";
+resumeButton.style.cursor = "pointer";
+resumeButton.addEventListener("click", () => {
+    pauseMenu.style.display = "none";
+    // Add any logic to resume the game if needed
+});
+pauseMenu.appendChild(resumeButton);
+
+// Save button
+function saveGame(){
+      // Implement save functionality using localStorage
+      // For example:
+      localStorage.setItem("gameState", JSON.stringify({
+          playerPosition: player.position,
+          playerRotation: player.rotation,
+          playerInventory: inventory,
+          /*/playerRaft: raft,
+          raftDirection: raftDirection,
+          raftSpeed: raftSpeed,*/
+          // Add other game state variables as needed
+          // Add other relevant game state data to save
+      }));
+}
+let saveButton = document.createElement("button");
+saveButton.textContent = "Save";
+saveButton.style.marginTop = "10px";
+saveButton.style.padding = "5px 10px";
+saveButton.style.background = "lightgray";
+saveButton.style.cursor = "pointer";
+saveButton.addEventListener("click", () => saveGame());
+pauseMenu.appendChild(saveButton);
+
+// Quit button
+let quitButton = document.createElement("button");
+quitButton.textContent = "Quit";
+quitButton.style.marginTop = "10px";
+quitButton.style.padding = "5px 10px";
+quitButton.style.background = "lightgray";
+quitButton.style.cursor = "pointer";
+quitButton.addEventListener("click", () => {
+    // Show confirmation dialog
+    if (confirm("Are you sure you want to quit?")) {
+        // Close the page
+        if (confirm("Do you want to save before quitting?")){
+          saveGame()
+        }
+        window.close();
+    }
+});
+pauseMenu.appendChild(quitButton);
+
+// Add pause menu to the document body
+document.body.appendChild(pauseMenu);
+
+// Function to toggle pause menu visibility
+function togglePauseMenu() {
+    pauseMenu.style.display = pauseMenu.style.display === "none" ? "block" : "none";
+}
+
+// Event listener for pausing the game
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        togglePauseMenu();
+    }
+});
+
+// Function to load game state from localStorage
+function loadGame() {
+    let gameState = localStorage.getItem("gameState");
+    if (gameState) {
+        gameState = JSON.parse(gameState);
+
+        // Apply player position and rotation
+        if (gameState.playerPosition) {
+            player.position.copy(gameState.playerPosition);
+        }
+        if (gameState.playerRotation) {
+            player.rotation.copy(gameState.playerRotation);
+        }
+
+        // Apply player inventory
+        if (gameState.playerInventory) {
+            inventory = gameState.playerInventory;
+            updateInventoryUI(); // Update inventory UI after loading inventory
+        }
+        // Apply player raft
+        /*if (gameState.playerRaft) {
+            raft.length = 0; // Clear existing raft
+            for (const meshData of gameState.playerRaft) {
+                // Check if meshData is valid and create a new mesh object
+                if (meshData && meshData.geometry && meshData.material) {
+                    const mesh = new THREE.Mesh(meshData.geometry, meshData.material);
+                    // Add the mesh to the raft array
+                    raft.push(mesh);
+                } else {
+                    console.error("Invalid mesh data:", meshData);
+                }
+            }
+        }*/
+        // Apply raft direction
+        if (gameState.raftDirection){
+          raftDirection = gameState.raftDirection;
+        }
+        // Apply raft speed
+        if (gameState.raftSpeed){
+          raftSpeed = gameState.raftSpeed;
+        }
+
+        // Add other relevant game state variables and apply them here
+
+        // Example:
+        // if (gameState.otherVariable) {
+        //     otherVariable = gameState.otherVariable;
+        // }
+
+        // Example for raft:
+        // if (gameState.raftPosition) {
+        //     raft.position.copy(gameState.raftPosition);
+        // }
+    }
+}
+
+
+// Call loadGameState function when your game starts or when needed
+loadGame();
 
 function animate() {
   requestAnimationFrame(animate);
@@ -506,7 +718,7 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
           //add to inventory the type of trash picked up (use the type property unless its crate or barrel)
           //debug test
           console.log(trashPiece.userData.type)
-          
+          winAchievement("trash");
           const trashType = trashPiece.userData.type;
           //extra debug
           // addItemToInventory(trashType, 1)
