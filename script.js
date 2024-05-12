@@ -42,22 +42,16 @@ var zvelocity = 0;
 const inventorySize = 10;
 
 
+
 function winAchievement(achievement) {
   const achievementConfig = {
     'trash': {
-      icon: 'trashcan_nobg.png',
+      icon: 'placeholder',
       displayText: 'You are.. TRASH.. sorry wrong achievement.. You picked up.. Trash!'
     },
-    'smiley': {
-      icon: 'smiley!.jpeg',
-      displayText: 'EXTREMELY EXTREMELY RARE: Smiley! You have a 0.00001% (1/10,000,000) chance of getting this achievement and item every frame. Keep the item and treasure it'
-    },
-    'MMMMMMMMM': {
-      displayText: 'MMMMMMMMMMMMMMMMMMMMMMMMMMM (press M)'
-    }
   };
 
-  if (!localStorage.getItem(achievement)) { // Check if achievement has not been unlocked
+  if (!localStorage.getItem("achievement: " + achievement)) { // Check if achievement has not been unlocked
     const notificationBar = document.createElement('div');
     notificationBar.style.position = 'fixed';
     notificationBar.style.top = '0';
@@ -66,10 +60,7 @@ function winAchievement(achievement) {
     notificationBar.style.padding = '10px';
     notificationBar.style.backgroundColor = 'rgba(255, 215, 0, 0.8)';
     notificationBar.style.color = 'black';
-    notificationBar.style.fontSize = '20px';
-    notificationBar.style.textAlign = 'center';
-    notificationBar.style.zIndex = '9999';
-    notificationBar.style.display = 'none';
+
     const achievementIcon = document.createElement('img');
     achievementIcon.src = achievementConfig[achievement].icon;
     achievementIcon.style.width = '50px';
@@ -87,7 +78,7 @@ function winAchievement(achievement) {
       document.body.removeChild(notificationBar);
     }, 5000); // Auto-dismiss after 5 seconds
 
-    localStorage.setItem(achievement, true); // Mark achievement as unlocked
+    localStorage.setItem("achievement: " + achievement, true); // Mark achievement as unlocked
   }
 }
 function customAlert(message, parameters, ...buttons) {
@@ -522,7 +513,7 @@ function saveGame(){
       }));
     customAlert("Saved!", "auto-dismiss: 2")
 }
-//set a timer to save the game every two minutes
+//set a timer to save the game every minute
 setInterval(() => {saveGame()}, 60000);
 
 //make a save button
@@ -800,7 +791,7 @@ thirdSpawnPosition.x += offsetX;
         scene.add(crate);
         if (Math.random() < 0.000001){
           addItemToInventory("smiley", 1);
-          winAchievement("smiley")
+          //winAchievement("smiley")
         }
       }
   }
@@ -884,8 +875,8 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
     
   });
   updateInventoryUI();
-  if (keys["m"]){
-    winAchievement("MMMMMMMMM")
+  if (true){
+    //winAchievement("MMMM")
   }
 }
 
