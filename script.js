@@ -46,12 +46,16 @@ const inventorySize = 10;
 function winAchievement(achievement) {
   const achievementConfig = {
     'trash': {
-      icon: 'placeholder',
+      icon: 'trashcan_nobg.png',
       displayText: 'You are.. TRASH.. sorry wrong achievement.. You picked up.. Trash!'
     },
+    'smiley': {
+      icon: 'smiley!.jpeg',
+      displayText: 'You are.. SMILEY!.. You picked up.. A smiley face! its extremely rare. You should be proud of yourself.'
+    }
   };
 
-  if (!localStorage.getItem("achievement: " + achievement)) { // Check if achievement has not been unlocked
+  if (!localStorage.getItem("achievement: " + achievement)) { // Check if achievement has not been unlocked yet
     const notificationBar = document.createElement('div');
     notificationBar.style.position = 'fixed';
     notificationBar.style.top = '0';
@@ -791,7 +795,7 @@ thirdSpawnPosition.x += offsetX;
         scene.add(crate);
         if (Math.random() < 0.000001){
           addItemToInventory("smiley", 1);
-          //winAchievement("smiley")
+          winAchievement("smiley")
         }
       }
   }
