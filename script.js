@@ -32,6 +32,9 @@ waterTexture.encoding = THREE.sRGBEncoding;
 waterTexture.anisotropy = 16;
 //Set the repeat to be very small so the water looks detailed
 
+//define a raycaster
+const raycaster = new THREE.Raycaster();
+
 var raftSpeed = 0.02; // Set the speed of the raft
 var raftDirection = new THREE.Vector3(1, 0, 0); // Set the direction of the raft
 
@@ -41,8 +44,32 @@ var yvelocity = 0;
 var zvelocity = 0;
 const inventorySize = 10;
 
-
-
+const soundList = {
+  sfx: {
+    
+  },
+  music: {
+    bgm: {
+      'track1': 'sounds/bgm/track1.ogg',
+    },
+  },
+  misc: {
+    
+  },
+}
+function playRandomBGM(){
+  const bgm = soundList.music.bgm[Object.keys(soundList.music.bgm)[Math.floor(Math.random() * Object.keys(soundList.music.bgm).length)]];
+  const audio = new Audio(bgm);
+  audio.loop = false;
+  audio.play();
+}
+//wait until user can play audio, then play bgm for first time and set a timer to play another random bgm every 5 minutes
+var audio = new Audio('sounds/bgm/track1.ogg');
+audio.oncanplaythrough = function(){
+  audio.play();
+  playRandomBGM();
+  setInterval(playRandomBGM, 300000);
+}
 function winAchievement(achievement) {
   const achievementConfig = {
     'trash': {
@@ -827,59 +854,63 @@ thirdSpawnPosition.x += offsetX;
       // Move trash away from the player and raft
 trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
       //The player can press e while looking at the trash from a close distance to pick it up, only if the player is looking at the trash using ray tracing
-      if (player.position.distanceTo(trashPiece.position) < ((trashPiece.scale.x + trashPiece.scale.y + trashPiece.scale.z)/3 * 3) && player.rotation.y > -Math.PI / 2 && player.rotation.y < Math.PI / 2 && player.rotation.x > -Math.PI / 2 && player.rotation.x < Math.PI / 2){
-        if (keys["e"]){
-          scene.remove(trashPiece);
-          trash.splice(trash.indexOf(trashPiece), 1);
-          //add to inventory the type of trash picked up (use the type property unless its crate or barrel)
-          //debug test
-          console.log(trashPiece.userData.type)
-          winAchievement("trash");
-          const trashType = trashPiece.userData.type;
-          //extra debug
-          // addItemToInventory(trashType, 1)
-          //If it is not a crate or barrel, add it to the inventory
-          if (trashType != "crate" && trashType != "barrel"){
-            //Check if the trashType is an allowed type
-            if (inventory.length <= inventorySize){
-              //Use function to add item to inventory
-              addItemToInventory(trashType, 1);
+        // Cast a ray from the player's position in the direction they are facing
+        raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+
+        // Check for intersections
+        const intersects = raycaster.intersectObjects(trash);
+
+        // If there are intersections, pick up the item
+        if (intersects.length > 0) {
+            const intersectedObject = intersects[0].object;
+            const trashPiece = intersectedObject;
+
+            // Check if the player is close enough and facing the item
+            if (player.position.distanceTo(trashPiece.position) < ((trashPiece.scale.x + trashPiece.scale.y + trashPiece.scale.z) / 3 * 3) &&
+                player.rotation.y > -Math.PI / 2 && player.rotation.y < Math.PI / 2 &&
+                player.rotation.x > -Math.PI / 2 && player.rotation.x < Math.PI / 2) {
+                if (keys["e"]) {
+                    scene.remove(trashPiece);
+                    trash.splice(trash.indexOf(trashPiece), 1);
+                    const trashType = trashPiece.userData.type;
+                    winAchievement("trash");
+                    // Add the item to the inventory based on its type
+                    if (trashType != "crate" && trashType != "barrel") {
+                        if (inventory.length < inventorySize) {
+                            addItemToInventory(trashType, 1);
+                        }
+                    }
+                    if (trashType === "barrel") {
+                        const items = ["wood", "stone", "leaf"];
+                        const itemCounts = [Math.floor(Math.random() * 5) + 1, Math.floor(Math.random() * 5) + 1, Math.floor(Math.random() * 5) + 1];
+                        for (let i = 0; i < items.length; i++) {
+                            const item = items[i];
+                            const count = itemCounts[i];
+                            for (let j = 0; j < count; j++) {
+                                addItemToInventory(item, 1);
+                            }
+                        }
+                    }
+                    if (trashType === "crate") {
+                        const items = ["wood", "stone", "leaf", "scrap"];
+                        const itemCounts = [Math.floor(Math.random() * 3) + 4, Math.floor(Math.random() * 3) + 4, Math.floor(Math.random() * 3) + 4];
+                        for (let i = 0; i < items.length; i++) {
+                            const item = items[i];
+                            const count = itemCounts[i];
+                            for (let j = 0; j < count; j++) {
+                                addItemToInventory(item, 1);
+                            }
+                        }
+                    }
+                    updateInventoryUI();
+                }
             }
-          }
-          //If it is a barrel, add a random amount of each item to the inventory between 1 and 5
-          if (trashType === "barrel"){
-            const items = ["wood", "stone", "leaf"];
-            const itemCounts = [Math.floor(Math.random() * 5) + 1, Math.floor(Math.random() * 5) + 1, Math.floor(Math.random() * 5) + 1];
-            for (let i = 0; i < items.length; i++) {
-              const item = items[i];
-              const count = itemCounts[i];
-              for (let j = 0; j < count; j++) {
-                //Use function to add item to inventory
-                addItemToInventory(item, 1);
-              }
-            }
-          }
-          //If it is a crate, add a random amount of each item to the inventory between 4 and 7
-          if (trashType === "crate"){
-            const items = ["wood", "stone", "leaf", "scrap"];
-            const itemCounts = [Math.floor(Math.random() * 3) + 4, Math.floor(Math.random() * 3) + 4, Math.floor(Math.random() * 3) + 4];
-            for (let i = 0; i < items.length; i++) {
-              const item = items[i];
-              const count = itemCounts[i];
-              for (let j = 0; j < count; j++) {
-                //Use function to add to inventory
-                addItemToInventory(item, 1);
-              }
-            }
-          }
-          //Update inventory UI
-          updateInventoryUI();
         }
-      }
+
     
   });
   updateInventoryUI();
-  if (true){
+  if (keys['m']){
     //winAchievement("MMMM")
   }
 }
