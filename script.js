@@ -963,11 +963,6 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
     
   }
   //If the player just enters the water then play splash sound
-  if (player.position.y = -3){
-    if (Math.random() < 0.5){
-      splashAudio.play();
-    }
-  }
 }
 const footstepAudio = new Audio("sounds/sfx/footstep.wav");
 const oceanSteps = new Audio("sounds/sfx/swimstep.wav")
