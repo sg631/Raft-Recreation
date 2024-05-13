@@ -43,10 +43,44 @@ var xvelocity = 0;
 var yvelocity = 0;
 var zvelocity = 0;
 const inventorySize = 10;
+function generateWhiteNoise(intensity) {
+  // Create an audio context
+  const audioCtx = new AudioContext();
+
+  // Create a buffer to store the noise data
+  const bufferSize = 2 * audioCtx.sampleRate; // Set the buffer size to 2 seconds
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+
+  // Fill the buffer with random noise values
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1; // Generate random values between -1 and 1
+  }
+
+  // Create a buffer source node
+  const bufferSource = audioCtx.createBufferSource();
+  bufferSource.buffer = noiseBuffer;
+
+  // Create a gain node to control the intensity of the noise
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.setValueAtTime(intensity, audioCtx.currentTime);
+
+  // Connect the buffer source to the gain node
+  bufferSource.connect(gainNode);
+
+  // Connect the gain node to the audio context's destination
+  gainNode.connect(audioCtx.destination);
+
+  // Start the buffer source
+  bufferSource.start();
+
+  // Return the buffer source and gain node
+  return { bufferSource, gainNode };
+}
 
 const soundList = {
   sfx: {
-    
+    'footsteps': 'sounds/sfx/footstep.wav',
   },
   music: {
     bgm: {
@@ -66,7 +100,6 @@ function playRandomBGM(){
 //wait until user can play audio, then play bgm for first time and set a timer to play another random bgm every 5 minutes
 var audio = new Audio('sounds/bgm/track1.ogg');
 audio.oncanplaythrough = function(){
-  audio.play();
   playRandomBGM();
   setInterval(playRandomBGM, 300000);
 }
@@ -910,9 +943,33 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
     
   });
   updateInventoryUI();
+  //use white noise gen for the footsteps when in water
+  
   if (keys['m']){
     //winAchievement("MMMM")
   }
+  if (keys['w']){
+    // play footsteps sound effect
+    if (Math.random() < 1){
+      
+      if (player.position.y > -2.9){
+        
+        footstepAudio.play();
+      } else {
+        // const oceanSteps = generateWhiteNoise(0.4);
+        oceanSteps.play();
+      }
+    }
+    
+  }
+  //If the player just enters the water then play splash sound
+  if (player.position.y = -3){
+    if (Math.random() < 0.5){
+      splashAudio.play();
+    }
+  }
 }
-
+const footstepAudio = new Audio("sounds/sfx/footstep.wav");
+const oceanSteps = new Audio("sounds/sfx/swimstep.wav")
+const splashAudio = new Audio("sounds/sfx/splash.wav")
 animate();
