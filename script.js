@@ -1,6 +1,15 @@
+//DEBUG FEATURES ENABLE/DISABLE
+var sv_cheats = !1;
+const customConsole_enabled = true;
+//DEBUG FEATURES ENABLE/DISABLE
+
+var customConsole_open = false;
+
 //Init
 import * as THREE from 'three';
+//import { GLTFLoader } from '/loaders/GLTFLoader.js'
 
+//const loader = new GLTFLoader();
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
@@ -26,6 +35,193 @@ const plankTexture = textureLoader.load('plank.jpeg')
 const scrapTexture = textureLoader.load('scrap.jpg');
 const crateTexture = textureLoader.load('cratetexture.jpg');
 const leafTexture = textureLoader.load('leaf.jpg')
+const wilsonSkinTexture = textureLoader.load('wilsonskin.png');
+
+
+
+
+const obstacles = [];
+var health = 100;
+var maxhealth = 100;
+var thirst = 100;
+var maxthirst = 100;
+var hunger = 100;
+var maxhunger = 100;
+var stamina = 100;
+var maxstamina = 100;
+
+function handleSurvivalState(){
+  if (thirst > 0){
+    thirst -= 0.002;
+  }
+  if (hunger > 0){
+    hunger -= 0.001;
+  }
+  if (health > 0 && thirst <= 0 && hunger <= 0){
+    health -= 0.005;
+  }
+  if (keys["shift"]){
+    if (stamina > 0){
+      stamina -= 0.1
+    }
+  } else {
+    if (stamina < maxstamina){
+      stamina += 0.05
+    }
+  }
+  if (stamina <= 0){
+    stamina = 0;
+  }
+  if (stamina >= maxstamina){
+    stamina = maxstamina;
+  }
+  if (health <= 0){
+    health = 0;
+  }
+  if (thirst <= 0){
+    thirst = 0;
+  }
+  if (hunger <= 0){
+    hunger = 0;
+  }
+  
+}
+function updateSurvivalUI(){
+  document.getElementById("healthbarfill").style.width = health.toString() + "%";
+  document.getElementById("thirstbarfill").style.width = thirst.toString() + "%";
+  document.getElementById("hungerbarfill").style.width = hunger.toString() + "%";
+}
+function initializeSurvivalUI(){
+
+  var healthbar = document.createElement("div");
+  healthbar.style.position = "absolute";
+  healthbar.style.left = "10px";
+  healthbar.style.bottom = "100px";
+  healthbar.style.width = "calc(100% - 20px)";
+  healthbar.style.height = "20px";
+  healthbar.style.backgroundColor = "white";
+  healthbar.style.border = "none";
+  healthbar.style.borderRadius = "5px";
+  healthbar.style.display = "flex";
+  healthbar.style.justifyContent = "left";
+  healthbar.style.alignItems = "center";
+  healthbar.style.fontSize = "16px";
+  healthbar.style.fontWeight = "bold";
+  healthbar.style.color = "white";
+  healthbar.style.textAlign = "center";
+  healthbar.style.padding = "1px";
+  healthbar.style.boxSizing = "border-box";
+  healthbar.style.zIndex = "1";
+  healthbar.style.pointerEvents = "none";
+  healthbar.id = "healthbar"
+  var healthbarFill = document.createElement("div");
+  healthbarFill.style.width = "100%";
+  healthbarFill.style.height = "100%";
+  healthbarFill.style.backgroundColor = "green";
+  healthbarFill.style.borderRadius = "5px";
+  healthbarFill.id = "healthbarfill"
+  healthbar.appendChild(healthbarFill);
+  document.body.appendChild(healthbar);
+  var healthbarIcon = document.createElement("img");
+  healthbarIcon.src = "health_nobg.png";
+  healthbarIcon.style.width = "20px";
+  healthbarIcon.style.height = "20px";
+  healthbarIcon.style.marginLeft = "5px";
+  healthbar.appendChild(healthbarIcon);
+  
+
+  var thirstbar = document.createElement("div");
+  thirstbar.style.position = "absolute";
+  thirstbar.style.left = "10px";
+  thirstbar.style.bottom = "125px";
+  thirstbar.style.width = "calc(100% - 20px)";
+  thirstbar.style.height = "20px";
+  thirstbar.style.backgroundColor = "white";
+  thirstbar.style.border = "none";
+  thirstbar.style.borderRadius = "5px";
+  thirstbar.style.display = "flex";
+  thirstbar.style.justifyContent = "left";
+  thirstbar.style.alignItems = "center";
+  thirstbar.style.fontSize = "16px";
+  thirstbar.style.fontWeight = "bold";
+  thirstbar.style.color = "white";
+  thirstbar.style.textAlign = "center";
+  thirstbar.style.padding = "1px";
+  thirstbar.style.boxSizing = "border-box";
+  thirstbar.style.zIndex = "1";
+  thirstbar.style.pointerEvents = "none";
+  thirstbar.id = "thirstbar"
+  var thirstbarFill = document.createElement("div");
+  thirstbarFill.style.width = "100%";
+  thirstbarFill.style.height = "100%";
+  thirstbarFill.style.backgroundColor = "green";
+  thirstbarFill.style.borderRadius = "5px";
+  thirstbarFill.id = "thirstbarfill"
+  thirstbar.appendChild(thirstbarFill);
+  document.body.appendChild(thirstbar);
+  var thirstbarIcon = document.createElement("img");
+  thirstbarIcon.src = "thirst_nobg.png";
+  thirstbarIcon.style.width = "20px";
+  thirstbarIcon.style.height = "20px";
+  thirstbarIcon.style.marginLeft = "5px";
+  thirstbar.appendChild(thirstbarIcon);
+
+  var hungerbar = document.createElement("div");
+  hungerbar.style.position = "absolute";
+  hungerbar.style.left = "10px";
+  hungerbar.style.bottom = "150px";
+  hungerbar.style.width = "calc(100% - 20px)";
+  hungerbar.style.height = "20px";
+  hungerbar.style.backgroundColor = "white";
+  hungerbar.style.border = "none";
+  hungerbar.style.borderRadius = "5px";
+  hungerbar.style.display = "flex";
+  hungerbar.style.justifyContent = "left";
+  hungerbar.style.alignItems = "center";
+  hungerbar.style.fontSize = "16px";
+  hungerbar.style.fontWeight = "bold";
+  hungerbar.style.color = "white";
+  hungerbar.style.textAlign = "center";
+  hungerbar.style.padding = "1px";
+  hungerbar.style.boxSizing = "border-box";
+  hungerbar.style.zIndex = "1";
+  hungerbar.style.pointerEvents = "none";
+  hungerbar.id = "hungerbar"
+  var hungerbarFill = document.createElement("div");
+  hungerbarFill.style.width = "100%";
+  hungerbarFill.style.height = "100%";
+  hungerbarFill.style.backgroundColor = "green";
+  hungerbarFill.style.borderRadius = "5px";
+  hungerbarFill.id = "hungerbarfill"
+  hungerbar.appendChild(hungerbarFill);
+  document.body.appendChild(hungerbar);
+  var hungerbarIcon = document.createElement("img");
+  hungerbarIcon.src = "hunger_nobg.png";
+  hungerbarIcon.style.width = "20px";
+  hungerbarIcon.style.height = "20px";
+  hungerbarIcon.style.marginLeft = "5px";
+  hungerbar.appendChild(hungerbarIcon);
+}
+initializeSurvivalUI();
+//use an assemblage of meshes to create a shark
+const sharkiebodie = 
+  new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.5, 2), new THREE.MeshBasicMaterial({ map:waterTexture, color: "rgb(70, 70, 70)" }))
+sharkiebodie.position.y = -3;
+sharkiebodie.position.x = 0;
+sharkiebodie.position.z = 0;
+sharkiebodie.rotation.x = -Math.PI / 2;
+scene.add(sharkiebodie);
+obstacles.push(sharkiebodie);
+//use a group for sharkie
+const sharkie = new THREE.Object3D;
+sharkie.add(sharkiebodie);
+scene.add(sharkie)
+
+// WILSON THE VOLLEYBALL
+const wilson = new THREE.Mesh(
+  new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial( { map: wilsonSkinTexture, color: "rgb(255, 255, 255)" } ))
+scene.add(wilson)
 
 // Recolor the water texture to blue
 waterTexture.encoding = THREE.sRGBEncoding;
@@ -35,6 +231,14 @@ waterTexture.anisotropy = 16;
 //define a raycaster
 const raycaster = new THREE.Raycaster();
 
+// loader.load('shark.glb', function (gltf){
+//   sharkie = gltf.scene;
+//   sharkie.scale.set(0.1, 0.1, 0.1);
+//   sharkie.position.set(0, 0, 0);
+//   sharkie.rotation.set(0, 0, 0);
+//   scene.add(sharkie);
+// });
+
 var raftSpeed = 0.02; // Set the speed of the raft
 var raftDirection = new THREE.Vector3(1, 0, 0); // Set the direction of the raft
 
@@ -43,6 +247,8 @@ var xvelocity = 0;
 var yvelocity = 0;
 var zvelocity = 0;
 const inventorySize = 10;
+
+
 function generateWhiteNoise(intensity) {
   // Create an audio context
   const audioCtx = new AudioContext();
@@ -85,6 +291,7 @@ const soundList = {
   music: {
     bgm: {
       'track1': 'sounds/bgm/track1.ogg',
+      'track2': 'sounds/bgm/track2.ogg',
     },
   },
   misc: {
@@ -169,8 +376,8 @@ function customAlert(message, parameters, ...buttons) {
       alertContainer.remove();
     }, autoDismiss * 1000);
   }
-  const messageText = document.createElement('p');
-  messageText.textContent = message;
+  const messageText = document.createElement('div');
+  messageText.innerHTML = message;
   alertContainer.appendChild(messageText);
 
   buttons.forEach(buttonLabel => {
@@ -398,7 +605,7 @@ const sun = new THREE.DirectionalLight(0xffffff, 1);
 
 function updateFogColor() {
     // Check if the player is underwater (below a certain y-coordinate)
-    if (player.position.y < -3) {
+    if (player.position.y < -3 && !(player.position.y > -3.1 && player.position.y < -2.9)) {
         renderer.setClearColor(underwaterFogColor);
         //intensify fog using exponential
         gravityFactor = 0.004;
@@ -410,7 +617,20 @@ function updateFogColor() {
         scene.fog = new THREE.Fog(fogColor, 1, 15)
         scene.fog.color.set(fogColor); // Set default fog color when not underwater
     }
+  //If the player is colliding with the water, then add a cube just below the player to avoid flickering
+  if (player.position.y > -3.1 && player.position.y < -2.9){
+    underwaterViewCube.visible = true;
+    underwaterViewCube.position.x = player.position.x;
+    underwaterViewCube.position.z = player.position.z;
+    underwaterViewCube.position.y = player.position.y - 0.4;
+    camera.position.y = -2.7;
+  } else {
+    underwaterViewCube.visible = false;
+  }
 }
+const underwaterViewCube = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: underwaterFogColor}));
+scene.add(underwaterViewCube)
+underwaterViewCube.visible = false;
 
 function handleObstacleCollisions(player, obstacles, minDistance, speed, gravityFactor) {
   const playerVelocity = new THREE.Vector3(xvelocity, yvelocity, zvelocity);
@@ -431,7 +651,7 @@ function handleObstacleCollisions(player, obstacles, minDistance, speed, gravity
         bounceBackDistance = -minDistance; // Ensure player stays at minimum distance
       }
 
-      // Move the player away from the obstacle with variable bounce-back distance
+      // Move the player away from the obstacle with variable bounce-back distance if the distance to be moved back is less than the minimum distance (to avoid accidental afk movement)
       player.position.add(direction.multiplyScalar(bounceBackDistance));
 
       isColliding = true;
@@ -459,9 +679,9 @@ document.addEventListener('mousemove', (event) => {
     player.rotation.x -= event.movementY * sensitivity; // Update x rotation on the x-axis
     player.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, player.rotation.x)); // Limit x rotation
 });
-const speed = 0.05
+var speed = 0.05
 //adjust player movement to change respective velocity values base on the direction of the player
-const maxSpeed = 0.05; // Set your desired maximum speed value here
+var maxSpeed = 0.05; // Set your desired maximum speed value here
 var keys = {
   w:false,
   a:false,
@@ -521,7 +741,8 @@ scene.add(player)
 player.position.y = -2.05;
 //make the raft an array with each object having collision and having each object with their geometry and material defined, thereby allowing a build system to be built in the future
 const raft = []
-const obstacles = [];
+
+
 const trash = [];
 raft.push(new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 1), new THREE.MeshBasicMaterial({map: woodTexture})))
 
@@ -569,6 +790,10 @@ function saveGame(){
           playerPosition: player.position,
           playerRotation: player.rotation,
           playerInventory: inventory,
+          playerHealth: health,
+          playerHunger: hunger,
+          playerThirst: thirst,
+          playerStamina: stamina,
           /*/playerRaft: raft,
           raftDirection: raftDirection,
           raftSpeed: raftSpeed,*/
@@ -624,6 +849,210 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
+
+
+
+const noPermCommands = {
+  help: { runJS: "displayCommandHelp()", runArgs: {} },
+  sv_cheats: { runJS: "toggleCheats()", runArgs: {} },
+  load: { runJS: "loadGame()", runArgs: {} },
+  clear_save: { runJS: "localStorage.clear();window.location.reload();", runArgs: {} },
+  save: { runJS: "saveGame()", runArgs: {} },
+  msg: {
+    runJS: "customAlert('~message~', 'auto-dismiss:~autodismisstime~')",
+    runArgs: {
+      message: { desc: "The message to be displayed", type: "string", required: true },
+      autodismisstime: { desc: "The amount of time before the message autodismisses", type: "string", required: false },
+      custombuttons: { desc: "The custom buttons to be displayed", type: "array", required: false }
+    }
+  }
+};
+
+const cheatCommands = {
+  execute: { runJS: "eval('~evalcode~')", runArgs: { evalcode: { desc: "The code to run", type: "string" } } },
+  sv_gravity: { runJS: "gravityFactor = ~gravity~", runArgs: { gravity: { desc: "The gravity to be set", type: "number", required: true } } },
+  sv_maxspeed: { runJS: "maxspeed = ~maxspeed~", runArgs: { maxSpeed: { desc: "The max speed to be set", type: "number", required: true } } },
+  sv_speed: { runJS: "speed = ~speed~", runArgs: { speed: { desc: "The speed to be set", type: "number", required: true } } },
+  set_thirst: { runJS: "thirst = ~thirst~", runArgs: { thirst: { desc: "the thirst of the player", type: "number", required: true } } },
+  set_hunger: { runJS: "hunger = ~hunger~", runArgs: {hunger: { desc: "the hunger of the player", type: "number", required: true }}},
+};
+
+function toggleCheats() {
+  sv_cheats = !sv_cheats;
+  customAlert(`Cheats Status: ${sv_cheats ? "Enabled" : "Disabled"}`, "auto-dismiss: 3");
+}
+
+function displayCommandHelp() {
+  let nopermcommandList = "<ul>";
+  for (const command in noPermCommands) {
+    nopermcommandList += `<li>${command}</li>`;
+  }
+  nopermcommandList += "</ul>";
+
+  let cheatcommandList = "<ul>";
+  for (const command in cheatCommands) {
+    cheatcommandList += `<li>${command}</li>`;
+  }
+  cheatcommandList += "</ul>";
+
+  customAlert(`Commands | No Permission Required: ${nopermcommandList}<br>Commands | Cheats: ${cheatcommandList}`, "", "OK");
+}
+
+function predictCommand(input) {
+  const parts = input.split(" ");
+  const command = parts[0];
+  const args = parts.slice(1);
+
+  let runJS;
+  if (command in noPermCommands) {
+    runJS = noPermCommands[command].runJS;
+  } else if (sv_cheats && command in cheatCommands) {
+    runJS = cheatCommands[command].runJS;
+  }
+
+  if (runJS) {
+    args.forEach((arg, index) => {
+      const argName = Object.keys(noPermCommands[command]?.runArgs ?? cheatCommands[command]?.runArgs ?? {})[index];
+      if (argName) {
+        runJS = runJS.replace(`~${argName}~`, arg);
+      }
+    });
+    return runJS;
+  }
+
+  return null;
+}
+
+function displayPredictions(predictions) {
+  let predictionList = document.getElementById("predictionList");
+  if (!predictionList) {
+    predictionList = document.createElement("ul");
+    predictionList.id = "predictionList";
+    predictionList.style.position = "absolute";
+    predictionList.style.top = "60px";
+    predictionList.style.left = "0";
+    predictionList.style.backgroundColor = "#fff";
+    predictionList.style.border = "1px solid #ccc";
+    predictionList.style.width = "100%";
+    predictionList.style.listStyle = "none";
+    predictionList.style.padding = "0";
+    predictionList.style.margin = "0";
+    document.getElementById("customConsoleInput").parentNode.appendChild(predictionList);
+  }
+
+  predictionList.innerHTML = "";
+  predictions.forEach(prediction => {
+    const li = document.createElement("li");
+    li.style.padding = "5px";
+    li.style.cursor = "pointer";
+    li.textContent = prediction;
+    li.addEventListener("click", () => {
+      document.getElementById("customConsoleInput").value = prediction;
+      predictionList.innerHTML = "";
+    });
+    predictionList.appendChild(li);
+  });
+}
+
+
+
+function initializeCustomConsole() {
+  const customConsole = document.createElement("div");
+  customConsole.id = "customconsole";
+  customConsole.style.position = "fixed";
+  customConsole.style.top = "50%";
+  customConsole.style.left = "50%";
+  customConsole.style.transform = "translate(-50%, -50%)";
+  customConsole.style.padding = "20px";
+  customConsole.style.background = "rgba(255, 255, 255, 0.8)";
+  customConsole.style.border = "2px solid black";
+  customConsole.style.zIndex = "999";
+  customConsole.style.display = "none";
+
+  const customConsoleInput = document.createElement("input");
+  customConsoleInput.id = "customConsoleInput";
+  customConsoleInput.type = "text";
+  customConsoleInput.style.width = "100%";
+  customConsoleInput.style.height = "30px";
+  customConsoleInput.style.marginTop = "10px";
+  customConsoleInput.style.padding = "5px";
+  customConsoleInput.style.border = "1px solid #ccc";
+  customConsoleInput.style.borderRadius = "4px";
+  customConsoleInput.style.fontSize = "16px";
+  customConsoleInput.style.fontFamily = "Arial, sans-serif";
+  customConsoleInput.style.boxSizing = "border-box";
+  customConsoleInput.style.outline = "none";
+  customConsoleInput.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+
+  customConsole.appendChild(customConsoleInput);
+  document.body.appendChild(customConsole);
+
+  customConsoleInput.addEventListener("input", () => {
+    const input = customConsoleInput.value;
+    const predictions = [];
+    for (const command in noPermCommands) {
+      if (command.startsWith(input)) {
+        predictions.push(command);
+      }
+    }
+    for (const command in cheatCommands) {
+      if (command.startsWith(input)) {
+        predictions.push(command);
+      }
+    }
+    displayPredictions(predictions);
+  });
+
+  customConsoleInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const command = customConsoleInput.value;
+      const predictedCommand = predictCommand(command);
+      if (predictedCommand) {
+        console.log(`Running: ${predictedCommand}`);
+        eval(predictedCommand);
+      } else {
+        console.log(`Invalid command: ${command}`);
+      }
+      customConsoleInput.value = "";
+      toggleCustomConsole();
+      document.getElementById("predictionList").innerHTML = "";
+    }
+  });
+}
+
+function executeCommand(input) {
+  const parts = input.split(" ");
+  const command = parts[0];
+  const code = parts.slice(1).join(" ");
+
+  if (command === "execute") {
+    return cheatCommands.execute.runJS.replace("~evalcode~", code);
+  }
+
+  return null;
+}
+
+function toggleCustomConsole() {
+  const customConsole = document.getElementById("customconsole");
+  if (customConsole.style.display === "none") {
+      customConsole.style.display = "block";
+      document.getElementById("customConsoleInput").focus();
+  } else {
+      customConsole.style.display = "none";
+      document.getElementById("predictionList").innerHTML = ""; // Clear predictions
+  }
+}
+
+// Initialize custom console
+initializeCustomConsole();
+
+// Event listener to toggle console with backtick key
+document.addEventListener('keydown', (event) => {
+  if (event.key === '`') {
+    toggleCustomConsole();
+    event.preventDefault();
+  }
+});
 // Function to load game state from localStorage
 function loadGame() {
     let gameState = localStorage.getItem("gameState");
@@ -642,6 +1071,15 @@ function loadGame() {
         if (gameState.playerInventory) {
             inventory = gameState.playerInventory;
             updateInventoryUI(); // Update inventory UI after loading inventory
+        }
+        if (gameState.playerHealth){
+          health = gameState.playerHealth;
+        }
+        if (gameState.playerHunger){
+          hunger = gameState.playerHunger;
+        }
+        if (gameState.playerThirst){
+          thirst = gameState.playerThirst;
         }
         // Apply player raft
         /*if (gameState.playerRaft) {
@@ -771,12 +1209,10 @@ function craftItem(recipeName) {
 }
 
 
-
-
-
-
 function animate() {
+  // handleCustomConsole()
   requestAnimationFrame(animate);
+  customConsole_open = false;
   // Handle collisions with obstacles and gravity effect
   handleObstacleCollisions(player, obstacles, minDistance, speed, gravityFactor);
 
@@ -948,7 +1384,7 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
   if (keys['m']){
     //winAchievement("MMMM")
   }
-  if (keys['w']){
+  if (keys['w'] || keys['a'] || keys['s'] || keys['d']){
     // play footsteps sound effect
     if (Math.random() < 1){
       
@@ -962,9 +1398,37 @@ trashPiece.position.add(raftDirection.clone().multiplyScalar(raftSpeed));
     }
     
   }
-  //If the player just enters the water then play splash sound
+  //Make Sharkie chase the player; Sharkie already defined, so we just need to make him chase player
+  const sharkieSpeed = 0.01;
+  if (player.position.y > -3){
+    //Move it towards the player, using vectors toward the player
+    var vector = new THREE.Vector3(player.position.x - sharkie.position.x, player.position.y - sharkie.position.y, player.position.z - sharkie.position.z);
+    sharkie.position.add(vector.multiplyScalar(sharkieSpeed));
+    //Make it look at the player
+    sharkiebodie.lookAt(player.position);
+    
+  } else {
+    //Make the sharkie circle around the raft
+    sharkie.position.x = raft.position.x + raftDirection.x * raftSpeed;
+    sharkie.position.z = raft.position.z + raftDirection.z * raftSpeed
+  }
+  //Make wilson always just in the distance, just out of reach
+  wilson.position.x = player.position.x + 8
+  wilson.position.y = -2.8
+  wilson.position.z = player.position.z + 8
+  //Make the center of the water always align with the center of the player, for infinite ocean effect.
+  water.position.x = player.position.x + water.scale.x / 2;
+  water.position.z = player.position.z + water.scale.z / 2;
+  //If the player just enters the water then play splash sound (only if the players colliding with the water plane)
+  if (player.position.y < -2.9 && player.position.y > -3.1){
+    if (Math.random() < 0.1){
+      splashAudio.play();
+    }
+  }
+  updateSurvivalUI();
+  handleSurvivalState();
 }
 const footstepAudio = new Audio("sounds/sfx/footstep.wav");
-const oceanSteps = new Audio("sounds/sfx/swimstep.wav")
-const splashAudio = new Audio("sounds/sfx/splash.wav")
+const oceanSteps = new Audio("sounds/sfx/swimstep.wav");
+const splashAudio = new Audio("sounds/sfx/splash.wav");
 animate();
